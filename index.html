@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gửi Cậu - Happy New Year</title>
+    <style>
+        /* --- 1. CẤU HÌNH CƠ BẢN --- */
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Patrick+Hand&family=Dancing+Script:wght@700&display=swap');
+
+        body {
+            margin: 0; padding: 0; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            background: radial-gradient(circle at bottom, #4a1c40 0%, #1a0b2e 100%);
+            font-family: 'Patrick Hand', cursive;
+            overflow: hidden; perspective: 1500px;
+        }
+
+        /* --- 2. HIỆU ỨNG NỀN --- */
+        canvas#fireworksCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        #stars-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        .star {
+            position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%;
+            box-shadow: 0 0 5px #fff, 0 0 10px #ffb7b2;
+            animation: twinkle var(--duration) infinite ease-in-out; opacity: 0;
+        }
+        @keyframes twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+
+        /* --- 3. MÁY BAY --- */
+        .runner-container {
+            position: fixed; top: 5%; left: 0; width: 150px; height: auto;
+            z-index: 9999; pointer-events: none;
+            animation: bounceInside 15s linear infinite; will-change: left;
+        }
+        .runner-gif {
+            width: 100%; height: auto; display: block;
+            animation: flipPlane 15s steps(1) infinite;
+        }
+        @keyframes bounceInside {
+            0% { left: 0; }
+            50% { left: calc(100vw - 150px); }
+            100% { left: 0; }
+        }
+        @keyframes flipPlane {
+            0% { transform: scaleX(-1); }
+            50% { transform: scaleX(1); }
+            100% { transform: scaleX(-1); }
+        }
+
+        /* --- 4. QUYỂN SÁCH --- */
+        .book {
+            position: relative; width: 350px; height: 500px;
+            transform-style: preserve-3d; z-index: 20;
+            box-shadow: 0 0 20px rgba(255, 105, 180, 0.3), 0 20px 50px rgba(0,0,0,0.6);
+            transition: transform 0.6s cubic-bezier(0.645, 0.045, 0.355, 1);
+            transform: translate3d(0,0,0);
+        }
+        .book.opened { transform: translateX(50%); }
+
+        .page {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+            transform-origin: left; 
+            transform-style: preserve-3d;
+            transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+            cursor: pointer; border-radius: 15px; 
+            background-color: #fff;
+            backface-visibility: hidden; -webkit-backface-visibility: hidden;
+            will-change: transform;
+        }
+
+        .front, .back {
+            position: absolute; width: 100%; height: 100%; 
+            backface-visibility: hidden; -webkit-backface-visibility: hidden;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 10px; box-sizing: border-box; border-radius: 15px;
+            background-color: #fffaf0; border: 1px solid #ffc1e3;
+            transform: translateZ(0);
+        }
+        .page .back { background-image: repeating-linear-gradient(#fffaf0 0px, #fffaf0 24px, #fff0f5 25px); }
+        .back { transform: rotateY(180deg) translateZ(1px); z-index: 1; border-left: none; }
+        .front { z-index: 2; }
+
+        /* Z-INDEX */
+        #p1 { z-index: 5; } #p2 { z-index: 4; } #p3 { z-index: 3; } #p4 { z-index: 2; } #p5 { z-index: 1; } 
+        .page.flipped { transform: rotateY(-180deg); }
+        #p1.flipped { z-index: 1; } #p2.flipped { z-index: 2; } #p3.flipped { z-index: 3; } #p4.flipped { z-index: 4; } #p5.flipped { z-index: 5; }
+
+        /* --- 5. STYLE NỘI DUNG --- */
+        h1 { font-family: 'Fredoka One', cursive; color: #e91e63; font-size: 2.2rem; margin: 10px 0; text-align: center; }
+        .photo-frame { background: #fff; padding: 8px 8px 30px 8px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); width: 85%; transform: rotate(-2deg); border-radius: 4px; position: relative; }
+        .photo-frame img { width: 100%; height: auto; border-radius: 2px; border: 1px solid #eee; }
+        .tape-photo { width: 80px; height: 25px; background-color: rgba(255, 235, 59, 0.5); position: absolute; top: -10px; left: 50%; transform: translateX(-50%) rotate(2deg); z-index: 5; }
+        .letter-paper {
+            background: #fff; width: 90%; height: 85%; padding: 15px; 
+            box-sizing: border-box; border: 1px solid #ffcdd2; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            background-image: repeating-linear-gradient(#fff 0px, #fff 24px, #ffebee 25px);
+            line-height: 25px; font-size: 1rem; color: #5c2b2b; text-align: left;
+            position: relative; transform: rotate(-1deg); overflow: hidden;
+        }
+        .letter-title {
+            font-family: 'Dancing Script', cursive; color: #d81b60; font-size: 1.6rem;
+            margin-bottom: 5px; text-align: center; display: inline-block; width: 100%;
+        }
+        .washi-tape {
+            width: 70px; height: 20px; background-color: rgba(255, 183, 77, 0.6);
+            position: absolute; top: -8px; left: 50%; transform: translateX(-50%); z-index: 5;
+            mask-image: radial-gradient(circle at 10px, transparent 5px, black 6px);
+        }
+        .caption { margin-top: 5px; color: #880e4f; font-size: 1rem; text-align: center; font-weight: bold; }
+        .hint { position: absolute; bottom: 10px; right: 15px; color: #ff80ab; font-size: 0.8rem; font-weight: bold; }
+        #p1 .front { background: #c2185b; border: 4px solid #fff; box-shadow: inset 0 0 20px rgba(0,0,0,0.2); }
+        #p1 h1, #p1 p, #p1 .hint { color: #fff !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+
+        /* --- 6. STYLE TRANG 5 --- */
+        #p5 .back {
+            background: #fff0f5; border: 4px double #d81b60; color: #880e4f;
+            display: flex; flex-direction: column; align-items: center; padding: 20px 15px;
+        }
+        .final-title {
+            font-family: 'Dancing Script', cursive; color: #d81b60; font-size: 2.2rem;
+            text-align: center; margin: 0 0 10px 0; text-shadow: 1px 1px 0 #fff; flex-shrink: 0;
+        }
+
+        /* --- 7. STYLE TRANG LÓT CUỐI --- */
+        .final-pad-container {
+            background: radial-gradient(circle, #e91e63 0%, #c2185b 100%); 
+            border-radius: 15px; box-shadow: inset 0 0 30px rgba(0,0,0,0.3); 
+            display: flex; flex-direction: column;
+            justify-content: flex-start; align-items: center;
+            padding: 20px 10px;
+        }
+
+        .final-text-box {
+            background: rgba(255, 235, 238, 0.9); 
+            border: 2px dashed #f8bbd0;
+            padding: 15px; border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin-bottom: 10px; width: 90%; height: 250px;
+            text-align: justify; font-size: 1.05rem; line-height: 1.6; color: #880e4f;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; -ms-overflow-style: none;
+        }
+        .final-text-box::-webkit-scrollbar { display: none; }
+        .final-text-box p { margin-bottom: 12px; text-indent: 15px; }
+
+        .small-gif {
+            width: 120px; height: auto;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+            margin-top: auto;
+        }
+
+        /* --- 8. MOBILE RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .book {
+                width: 44vw; height: 68vw;
+                max-width: 280px; max-height: 420px;
+            }
+            .book.opened { transform: translateX(50%) scale(0.9); }
+            h1 { font-size: 1.5rem; }
+            .letter-paper { padding: 8px; line-height: 20px; font-size: 0.75rem; background-size: 100% 20px; } 
+            .letter-title { font-size: 1.2rem; }
+            .final-title { font-size: 1.5rem; }
+            .caption { font-size: 0.8rem; }
+            .hint { font-size: 0.6rem; bottom: 5px; }
+            .runner-container { width: 100px; top: 10%; }
+            #p1 img { width: 100px !important; }
+            .final-text-box { height: 200px; font-size: 0.9rem; padding: 10px; }
+            .small-gif { width: 90px; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" loop>
+        <source src="NHAC/nen.mp3" type="audio/mpeg">
+    </audio>
+
+    <canvas id="fireworksCanvas"></canvas>
+    <div id="stars-container"></div>
+
+    <div class="runner-container">
+        <img src="GIF/1.gif" alt="Flying Plane" class="runner-gif">
+    </div>
+
+    <div class="book">
+        
+        <div class="page" id="p1" onclick="flipPage(this)">
+            <div class="front">
+                <h1>Happy<br>New Year</h1>
+                <div style="margin: 20px 0;">
+                    <img src="GIF/bia.gif" style="width: 150px; height: auto; border-radius: 10px; box-shadow: 0 0 15px rgba(255,255,255,0.3);" alt="Cover GIF">
+                </div>
+                <p style="font-size: 1.5rem;">Gửi Thương Hyên ❤️</p>
+                <div class="hint">Chạm để mở (Có nhạc) >></div>
+            </div>
+            <div class="back">
+                <div class="photo-frame">
+                    <div class="tape-photo"></div>
+                    <img src="ANH/anh1.png" alt="Anh 1">
+                </div>
+                <div class="caption">Khởi đầu mới</div>
+            </div>
+        </div>
+
+        <div class="page" id="p2" onclick="flipPage(this)">
+            <div class="front">
+                <div class="letter-paper">
+                    <div class="washi-tape" style="background: rgba(255, 105, 180, 0.5);"></div>
+                    <div style="text-align: center;"><span class="letter-title">Sức Khỏe</span></div>
+                    <p>Chúc Cậu năm mới thật nhiều sức khỏe.</p>
+                    <p>Ăn ngon, ngủ kỹ, không bao giờ ốm vặt.</p>
+                    <p>Có sức khỏe là có tất cả nha! ^^</p>
+                </div>
+                <div class="hint">Tiếp theo >></div>
+            </div>
+            <div class="back">
+                <div class="photo-frame" style="transform: rotate(2deg);">
+                    <div class="tape-photo" style="background: rgba(100, 255, 218, 0.5);"></div>
+                    <img src="ANH/anh2.png" alt="Anh 2">
+                </div>
+                <div class="caption">Luôn tươi cười</div>
+            </div>
+        </div>
+
+        <div class="page" id="p3" onclick="flipPage(this)">
+            <div class="front">
+                <div class="letter-paper" style="transform: rotate(1deg);">
+                    <div class="washi-tape" style="background: rgba(100, 255, 218, 0.5);"></div>
+                    <div style="text-align: center;"><span class="letter-title">Sự nghiệp</span></div>
+                    <p>Năm tới Cậu lên Hà Nội rồi cố gắng mà giữ sức khoẻ, ăn uống đầy đủ vô nhá 😊</p>
+                    <p>Chúc Cậu công việc thuận buồm xuôi gió.</p>
+                    <p>Thành công rực rỡ nhé!</p>
+                </div>
+                <div class="hint">Tiếp theo >></div>
+            </div>
+            <div class="back">
+                <div class="photo-frame" style="transform: rotate(-1deg);">
+                    <div class="tape-photo" style="background: rgba(255, 64, 129, 0.4);"></div>
+                    <img src="ANH/anh3.png" alt="Anh 3">
+                </div>
+                <div class="caption">Vững bước thành công</div>
+            </div>
+        </div>
+
+        <div class="page" id="p4" onclick="flipPage(this)">
+            <div class="front">
+                <div class="letter-paper" style="transform: rotate(1.5deg);">
+                    <div class="washi-tape" style="background: rgba(255, 152, 0, 0.4);"></div>
+                    <div style="text-align: center;"><span class="letter-title">Tương lai</span></div>
+                    <p>Dù có thế nào, thì tớ vẫn ở sau ủng hộ.</p>
+                    <p>Hãy cứ tự tin vững bước với con đường Cậu lựa chọn.</p>
+                    <p>Sắp tới biết là khó khăn nhưng cố gắng mà bước. Sau còn làm bà chủ tiệm chè. Mua đồ không phải nhìn giá ❤️</p>
+                </div>
+                <div class="hint">Trang cuối rồi >></div>
+            </div>
+            <div class="back">
+                <div class="photo-frame" style="transform: rotate(-3deg);">
+                    <div class="tape-photo" style="background: rgba(255, 152, 0, 0.4);"></div>
+                    <img src="ANH/anh5.png" alt="Anh 5">
+                </div>
+                <div class="caption">Mãi bên nhau nhé</div>
+            </div>
+        </div>
+
+        <div class="page" id="p5" onclick="flipPage(this)">
+            <div class="front">
+                <h1>Lời Kết</h1>
+                <div style="font-size: 3rem; margin: 20px 0;">💌🖋️</div>
+                <div style="padding: 0 20px; font-style: italic; color: #d81b60;">
+                    "Ngày Xuân nắng đẹp dịu dàng.<br>Cũng như tính cách nhẹ nhàng của cậu."
+                </div>
+                <div class="hint">Mở ra xem nào >></div>
+            </div>
+            
+            <div class="back">
+                <h1 class="final-title">Cảm Ơn Cậu!</h1>
+                <div class="letter-paper" style="height: auto; background: #fff0f5; border: none; box-shadow: none; transform: none; width: 100%;">
+                     <p>Cảm ơn vì từ những ngày đầu tiên quen biết cho đến bây giờ. Và trong suốt khoảng thời gian vừa qua. Biết nói như nào đây ta... Ờm.... Khó nói thật đó..... 👉👈</p>
+                     <p style="text-align: center; font-weight: bold; color: #d81b60; margin-top: 15px; font-family: 'Dancing Script', cursive; font-size: 1.3rem;">(Đọc tiếp bên cạnh nha 👉)</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page" style="z-index: 0; box-shadow: none;">
+             <div class="front final-pad-container">
+                 
+                 <div class="final-text-box" onclick="event.stopPropagation()">
+                    <p>Khô khan cũng chả biết nói như nào để diễn tả ra được tâm ý muốn nói ra. Nhưng mà những gì mà tớ làm cũng chỉ có 1 đích đến cuối cùng là 🧏</p>
+                    <p>Sang năm mới rồi, sắp tới cũng chỉ còn 1 khoảng thời gian ngắn nữa thôi.... 🥲</p>
+                    <p>Nói chung là cũng có cậu để vì 1 điều gì đó là cũng vui rồi. Đừng có mà doạ block nữa nhá. Ở xa không đến dỗ được luôn đâu 😁</p>
+                    <div style="text-align: center; margin-top: 15px; font-size: 2.5rem;">
+                        🥂💏✨
+                    </div>
+                </div>
+
+                <img src="GIF/cuoi.gif" class="small-gif" alt="Final Gif">
+
+             </div>
+        </div>
+
+    </div>
+
+    <script>
+        let musicStarted = false;
+        function playMusic() {
+            if (!musicStarted) {
+                const audio = document.getElementById('bg-music');
+                audio.play().then(() => {
+                    musicStarted = true;
+                }).catch(error => {
+                    console.log("Cần tương tác người dùng để phát nhạc.");
+                });
+            }
+        }
+
+        function flipPage(element) {
+            playMusic();
+            element.classList.toggle('flipped');
+
+            const book = document.querySelector('.book');
+            const p1 = document.getElementById('p1');
+            
+            if (p1.classList.contains('flipped')) {
+                book.classList.add('opened');
+            } else {
+                book.classList.remove('opened');
+            }
+        }
+
+        function createStars() {
+            const container = document.getElementById('stars-container');
+            for (let i = 0; i < 150; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                star.style.left = Math.random() * 100 + 'vw';
+                star.style.top = Math.random() * 100 + 'vh';
+                const size = Math.random() * 2 + 1; 
+                star.style.width = size + 'px'; star.style.height = size + 'px';
+                star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+                star.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(star);
+            }
+        }
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        let fireworks = [], particles = [];
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y; this.color = color;
+                const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 5 + 2;
+                this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+                this.alpha = 1; this.gravity = 0.05; this.friction = 0.98;
+            }
+            update() { this.vx *= this.friction; this.vy *= this.friction; this.vy += this.gravity; this.x += this.vx; this.y += this.vy; this.alpha -= 0.015; }
+            draw() { ctx.globalAlpha = this.alpha; ctx.beginPath(); ctx.arc(this.x, this.y, 2, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill(); ctx.globalAlpha = 1; }
+        }
+        class Firework {
+            constructor() {
+                this.x = Math.random() * canvas.width; this.y = canvas.height;
+                this.targetY = Math.random() * (canvas.height / 2);
+                this.speed = Math.random() * 3 + 4;
+                this.color = `hsl(${Math.random() * 360}, 100%, 50%)`; this.exploded = false;
+            }
+            update() { this.y -= this.speed; if (this.y <= this.targetY) { this.exploded = true; this.explode(); } }
+            draw() { ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x, this.y + 15); ctx.strokeStyle = this.color; ctx.lineWidth = 2; ctx.stroke(); }
+            explode() { for (let i = 0; i < 50; i++) particles.push(new Particle(this.x, this.y, this.color)); }
+        }
+        function animateFireworks() {
+            ctx.fillStyle = 'rgba(26, 11, 46, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (Math.random() < 0.03) fireworks.push(new Firework());
+            fireworks.forEach((fw, i) => { fw.update(); fw.draw(); if (fw.exploded) fireworks.splice(i, 1); });
+            particles.forEach((p, i) => { p.update(); p.draw(); if (p.alpha <= 0) particles.splice(i, 1); });
+            requestAnimationFrame(animateFireworks);
+        }
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+        window.onload = () => { createStars(); animateFireworks(); };
+    </script>
+</body>
+</html>
